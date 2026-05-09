@@ -186,22 +186,33 @@ function findAssetByReference(assets, reference) {
     return null;
   }
 
-  const compactReference = normalizeCompact(reference);
-  const normalizedReference = normalizeKey(reference);
+  const parsedReference = path.parse(String(reference));
+  const rawReference = String(reference);
+  const candidateReferences = unique([
+    rawReference,
+    parsedReference.base,
+    parsedReference.name,
+  ]);
+  const compactReferences = candidateReferences.map((value) => normalizeCompact(value)).filter(Boolean);
+  const normalizedReferences = candidateReferences.map((value) => normalizeKey(value)).filter(Boolean);
 
-  const exactAsset =
-    assets.find((asset) => asset.compactBase === compactReference) ||
-    assets.find((asset) => asset.normalizedBase === normalizedReference);
+  const exactAsset = assets.find(
+    (asset) =>
+      candidateReferences.includes(asset.originalname) ||
+      candidateReferences.includes(asset.relativeName) ||
+      compactReferences.includes(asset.compactBase) ||
+      normalizedReferences.includes(asset.normalizedBase)
+  );
 
   if (exactAsset) {
     return exactAsset;
   }
 
-  return (
-    assets.find((asset) => asset.compactBase.includes(compactReference)) ||
-    assets.find((asset) => asset.normalizedBase.includes(normalizedReference)) ||
-    null
-  );
+  return assets.find(
+    (asset) =>
+      compactReferences.some((candidate) => asset.compactBase.includes(candidate) || candidate.includes(asset.compactBase)) ||
+      normalizedReferences.some((candidate) => asset.normalizedBase.includes(candidate) || candidate.includes(asset.normalizedBase))
+  ) || null;
 }
 
 function isSupportedImage(filename) {
@@ -213,4 +224,3 @@ module.exports = {
   buildPreview,
   indexImageFiles,
 };
-
