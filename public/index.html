@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sheet2ID</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <p class="eyebrow">Spreadsheet to PDF for ID cards</p>
+        <h1>Sheet2ID</h1>
+        <p class="hero-copy">
+          Upload a CSV or Excel sheet, drop in photo and background folders, adjust the layout visually, and generate printable ID cards in one pass.
+        </p>
+      </header>
+
+      <main class="workspace">
+        <section class="panel controls-panel">
+          <div class="section-title">
+            <h2>Assets</h2>
+            <p>Everything stays local to this app session, and the live preview refreshes automatically as files and config change.</p>
+          </div>
+
+          <label class="field">
+            <span>Spreadsheet</span>
+            <input id="spreadsheet" type="file" accept=".csv,.xlsx,.xls" />
+            <small id="spreadsheet-meta">No spreadsheet selected.</small>
+          </label>
+
+          <label class="field">
+            <span>Photos Folder</span>
+            <input id="photos" type="file" accept=".png,.jpg,.jpeg" webkitdirectory multiple />
+            <small id="photos-meta">No photo folder selected.</small>
+          </label>
+
+          <label class="field">
+            <span>Background Folder</span>
+            <input id="backgrounds" type="file" accept=".png,.jpg,.jpeg" webkitdirectory multiple />
+            <small id="backgrounds-meta">No background folder selected.</small>
+          </label>
+
+          <div class="actions">
+            <button id="generate-button" class="button primary" type="button">Generate Full PDF</button>
+          </div>
+
+          <div id="status" class="status info">Load a spreadsheet to enable the live ID preview and full PDF export.</div>
+        </section>
+
+        <section class="panel preview-panel">
+          <div class="section-title">
+            <h2>Live Previews</h2>
+            <p>The ID preview refreshes automatically. The page setup preview only shows the page and card slot rectangles.</p>
+          </div>
+
+          <div class="preview-toolbar">
+            <label class="builder-field">
+              <span>Preview Row</span>
+              <input id="preview-start" class="builder-input" type="number" min="1" step="1" value="1" />
+              <small>1-based row index within the parsed spreadsheet rows.</small>
+            </label>
+          </div>
+
+          <div class="preview-stack">
+            <section class="preview-card">
+              <div class="preview-card-head">
+                <div>
+                  <h3>ID Preview</h3>
+                  <p id="preview-caption">Choose a spreadsheet to start the live ID preview.</p>
+                </div>
+                <a id="preview-download-link" class="download-link disabled" href="#" download="sheet2id-preview-card.pdf">
+                  Download current ID preview
+                </a>
+              </div>
+
+              <div class="frame-shell">
+                <div id="preview-empty" class="preview-placeholder">Choose a spreadsheet to start the live ID preview.</div>
+                <iframe id="preview-frame" title="Live ID preview"></iframe>
+              </div>
+            </section>
+
+            <section class="preview-card">
+              <div class="preview-card-head">
+                <div>
+                  <h3>Page Setup</h3>
+                  <p>Rectangles show the page and every configured card slot.</p>
+                </div>
+              </div>
+
+              <div id="page-setup-preview" class="page-setup-preview"></div>
+              <p id="page-setup-meta" class="preview-meta"></p>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel config-panel">
+          <div class="section-title">
+            <h2>Visual Builder</h2>
+            <p>Edit page size, card layout, text blocks, photo matching, and background rules through the GUI. Raw JSON is optional.</p>
+          </div>
+
+          <div class="config-actions">
+            <button id="load-default" class="button ghost" type="button">Reset to Default</button>
+            <button id="download-config" class="button ghost" type="button">Download Config</button>
+          </div>
+
+          <div id="config-gui" class="config-gui"></div>
+
+          <details class="advanced-panel">
+            <summary>Advanced JSON</summary>
+            <p class="advanced-copy">The GUI is the main editor now. Use this only if you want to tweak the raw config directly.</p>
+            <div class="config-actions advanced-actions">
+              <button id="apply-json" class="button ghost" type="button">Apply JSON</button>
+            </div>
+            <textarea id="config-editor" spellcheck="false"></textarea>
+          </details>
+        </section>
+
+        <section class="panel summary-panel">
+          <div class="section-title">
+            <h2>Match Summary</h2>
+            <p>The summary always shows the first 50 rows so you can sanity-check names, photos, and backgrounds before export.</p>
+          </div>
+
+          <div id="summary-metrics" class="metrics">
+            <div class="metric-card">
+              <strong>0</strong>
+              <span>Rows</span>
+            </div>
+            <div class="metric-card">
+              <strong>0</strong>
+              <span>Photos matched</span>
+            </div>
+            <div class="metric-card">
+              <strong>0</strong>
+              <span>Backgrounds matched</span>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead id="preview-head">
+                <tr>
+                  <th>Preview</th>
+                </tr>
+              </thead>
+              <tbody id="preview-body">
+                <tr>
+                  <td>No preview yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel output-panel">
+          <div class="section-title">
+            <h2>Generated PDF</h2>
+            <p>The full batch PDF appears here after you click Generate Full PDF.</p>
+          </div>
+
+          <a id="download-link" class="download-link disabled" href="#" download="sheet2id-cards.pdf">Download generated PDF</a>
+          <iframe id="pdf-frame" title="Generated PDF"></iframe>
+        </section>
+      </main>
+    </div>
+
+    <datalist id="sheet-options"></datalist>
+
+    <script src="/app.js"></script>
+  </body>
+  </html>
