@@ -11,12 +11,31 @@ function clamp(value, min, max) {
 }
 
 function normalizeKey(value) {
-  return String(value ?? "")
+  return transliterateForMatching(value)
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+function transliterateForMatching(value) {
+  const turkishAsciiMap = {
+    "Ç": "C",
+    "ç": "c",
+    "Ğ": "G",
+    "ğ": "g",
+    "İ": "I",
+    "ı": "i",
+    "Ö": "O",
+    "ö": "o",
+    "Ş": "S",
+    "ş": "s",
+    "Ü": "U",
+    "ü": "u",
+  };
+
+  return String(value ?? "").replace(/[ÇçĞğİıÖöŞşÜü]/g, (character) => turkishAsciiMap[character] || character);
 }
 
 function normalizeCompact(value) {
@@ -125,4 +144,3 @@ module.exports = {
   tokenize,
   unique,
 };
-
