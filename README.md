@@ -7,7 +7,7 @@ Sheet2ID is a local web app that turns spreadsheet rows into printable ID-card P
 - background switching by spreadsheet field rules such as `duty`
 - configurable card size, page size, grid layout, and text/photo placement
 - a GUI editor for page settings, matching rules, and card elements
-- previewing one card or one page before generating the full PDF
+- a sticky live single-card preview plus a separate page-setup preview
 
 ## Run it
 
@@ -27,20 +27,42 @@ node server.js
 
 ## Deploy on Vercel
 
-This project can be deployed to Vercel because:
+This repo is now set up for Vercel deployment.
 
-- the Express entry file is [server.js](/c:/Users/mybas/Desktop/Sheet2ID/server.js), which matches Vercel's supported Express entry names
-- static files already live in `public/`
+Why it fits Vercel's Express model:
+
+- the Express entry file is `server.js`, which matches Vercel's supported Express entry names
 - the app exports the Express instance with `module.exports = app`
+- static assets already live in `public/`, which is the location Vercel serves from its CDN
+- `vercel.json` is included and sets the function timeout explicitly for `server.js`
 
-Basic deploy flow:
+Files added or relied on for deployment:
 
-1. Push this folder to GitHub, GitLab, or Bitbucket.
-2. Import the repo into Vercel.
-3. Keep the framework preset as `Other` or let Vercel auto-detect Express.
-4. Leave the build command empty.
-5. Set the Node version to `24.x` if Vercel does not pick it automatically.
-6. Deploy.
+- `server.js`
+- `public/**`
+- `package.json`
+- `vercel.json`
+
+Dashboard deploy flow:
+
+1. Push the latest commit to GitHub.
+2. In Vercel, click `New Project`.
+3. Import this repository.
+4. On the project configuration screen:
+   - Root Directory: leave as the repo root
+   - Framework Preset: let Vercel auto-detect Express, or choose `Other` if it does not
+   - Build Command: leave empty
+   - Output Directory: leave empty
+   - Install Command: leave empty
+5. Confirm the Node version is `24.x`.
+6. Click `Deploy`.
+
+After the first deploy:
+
+1. Open the deployment URL.
+2. Confirm `/` loads the app shell.
+3. Confirm `/api/default-config` returns JSON.
+4. Try a very small spreadsheet upload first.
 
 CLI alternative:
 
@@ -49,24 +71,31 @@ npm install -g vercel
 vercel
 ```
 
-Important limitation:
+For a production deployment from the CLI:
+
+```powershell
+vercel --prod
+```
+
+Important limitation on Vercel:
 
 - Vercel Functions currently have a `4.5 MB` request-body limit, and this app uploads the spreadsheet plus all selected photos/backgrounds in a single request.
-- That means the current architecture is only safe on Vercel for small demos or very small asset sets.
+- That means this deployment is safe on Vercel only for small demos or very small asset sets.
 - For real-world batches of photos, a better deployment shape is:
   client uploads directly to storage first, or
   the PDF generation runs on a platform without the same body-size limit.
 
-Font note:
+Runtime note:
 
 - The PDF renderer now tries both Windows and common Linux font paths, so it is much more likely to work on Vercel's Linux runtime than before.
+- On Vercel, files inside `public/` are served by the platform CDN. `express.static()` is still useful locally, but Vercel serves those assets separately.
 
 ## How it works
 
 1. Upload a spreadsheet.
 2. Optionally select a photo folder and a background folder.
 3. Edit the layout in the GUI builder.
-4. Click `Preview` to inspect matching plus either a single-card preview or a one-page preview.
+4. Watch the live ID preview and the page-setup preview update automatically.
 5. Click `Generate Full PDF` to create the final ID-card sheet.
 
 ## Config notes

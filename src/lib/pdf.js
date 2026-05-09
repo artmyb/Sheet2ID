@@ -409,15 +409,18 @@ async function drawPhotoElement(page, pdfDoc, card, cardRect, element, config, f
     const image = await getEmbeddedImage(pdfDoc, card.photoAsset, imageCache);
     drawImageInBox(page, image, box, element.fit);
   } else {
-    const font = fontCache[DEFAULT_BOLD_FONT_KEY] || fontCache[DEFAULT_FONT_KEY];
     const label = config.photos.placeholderLabel || "NO PHOTO";
+    const prepared = prepareTextForRendering(label, [
+      fontCache[DEFAULT_BOLD_FONT_KEY] || fontCache[DEFAULT_FONT_KEY],
+      fontCache[DEFAULT_FONT_KEY],
+    ]);
     const size = clamp(box.height / 6.5, 7, 12);
-    const textWidth = font.widthOfTextAtSize(label, size);
-    page.drawText(label, {
+    const textWidth = prepared.font.widthOfTextAtSize(prepared.text, size);
+    page.drawText(prepared.text, {
       x: box.x + Math.max(0, (box.width - textWidth) / 2),
       y: box.y + Math.max(0, (box.height - size) / 2),
       size,
-      font,
+      font: prepared.font,
       color: hexToRgb("#8B8577", "#8B8577"),
     });
   }
@@ -445,7 +448,9 @@ function drawTextElement(page, card, cardRect, element, fontCache) {
   }
 
   const fontKey = resolveFontKey(element.font);
-  const font = fontCache[fontKey] || fontCache[DEFAULT_FONT_KEY];
+  const prepared = prepareTextForRendering(text, resolvePreferredFonts(fontCache, fontKey));
+  const font = prepared.font;
+  text = prepared.text;
   const box = resolveElementBox(cardRect, element);
   const padding = mmToPt(element.paddingMm);
 
@@ -489,6 +494,79 @@ function drawTextElement(page, card, cardRect, element, fontCache) {
       color: hexToRgb(element.color, "#111111"),
     });
   });
+}
+
+function resolvePreferredFonts(fontCache, fontKey) {
+  const candidates = [fontCache[fontKey]];
+
+  if (String(fontKey || "").includes("bold")) {
+    candidates.push(fontCache[DEFAULT_BOLD_FONT_KEY]);
+  }
+
+  candidates.push(fontCache[DEFAULT_FONT_KEY]);
+
+  return candidates.filter((font, index, list) => font && list.indexOf(font) === index);
+}
+
+function prepareTextForRendering(text, candidateFonts) {
+  const normalizedText = String(text || "");
+  const fonts = candidateFonts.filter(Boolean);
+  const fallbackFont = fonts[0];
+
+  if (!fallbackFont) {
+    throw new Error("No PDF font was available for rendering text.");
+  }
+
+  for (const font of fonts) {
+    if (canFontEncode(font, normalizedText)) {
+      return { font, text: normalizedText };
+    }
+  }
+
+  const fallbackText = sanitizeUnsupportedText(normalizedText);
+
+  for (const font of fonts) {
+    if (canFontEncode(font, fallbackText)) {
+      return { font, text: fallbackText };
+    }
+  }
+
+  return {
+    font: fallbackFont,
+    text: fallbackText.replace(/[^\x20-\x7E\r\n\t]/g, "?"),
+  };
+}
+
+function canFontEncode(font, text) {
+  try {
+    font.encodeText(String(text || ""));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function sanitizeUnsupportedText(text) {
+  const turkishAsciiMap = {
+    "Ç": "C",
+    "ç": "c",
+    "Ğ": "G",
+    "ğ": "g",
+    "İ": "I",
+    "ı": "i",
+    "Ö": "O",
+    "ö": "o",
+    "Ş": "S",
+    "ş": "s",
+    "Ü": "U",
+    "ü": "u",
+  };
+
+  return String(text || "")
+    .replace(/[ÇçĞğİıÖöŞşÜü]/g, (character) => turkishAsciiMap[character] || character)
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\x20-\x7E\r\n\t]/g, "?");
 }
 
 function fitTextToBox(text, font, options) {
