@@ -1,3 +1,4 @@
+const path = require("path");
 const fs = require("fs/promises");
 const fontkit = require("@pdf-lib/fontkit");
 const {
@@ -16,37 +17,66 @@ const { clamp, getRowValue, hexToRgb, mmToPt, renderTemplate } = require("./util
 
 const DEFAULT_FONT_KEY = "helvetica";
 const DEFAULT_BOLD_FONT_KEY = "helvetica-bold";
+const PROJECT_FONT_DIR = path.resolve(__dirname, "../fonts");
 
-const SANS_REGULAR_CANDIDATES = [
-  "C:\\Windows\\Fonts\\arial.ttf",
+const UNICODE_SANS_REGULAR_CANDIDATES = [
+  path.join(PROJECT_FONT_DIR, "NotoSans-Regular.ttf"),
+  "C:\\Windows\\Fonts\\NotoSans-Regular.ttf",
+  "C:\\Windows\\Fonts\\DejaVuSans.ttf",
+  "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
   "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
   "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
   "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-  "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
 ];
 
-const SANS_BOLD_CANDIDATES = [
-  "C:\\Windows\\Fonts\\arialbd.ttf",
+const UNICODE_SANS_BOLD_CANDIDATES = [
+  path.join(PROJECT_FONT_DIR, "NotoSans-Bold.ttf"),
+  "C:\\Windows\\Fonts\\NotoSans-Bold.ttf",
+  "C:\\Windows\\Fonts\\DejaVuSans-Bold.ttf",
+  "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",
   "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
   "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf",
   "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-  "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",
 ];
 
-const SANS_ITALIC_CANDIDATES = [
-  "C:\\Windows\\Fonts\\ariali.ttf",
+const UNICODE_SANS_ITALIC_CANDIDATES = [
+  path.join(PROJECT_FONT_DIR, "NotoSans-Italic.ttf"),
+  "C:\\Windows\\Fonts\\NotoSans-Italic.ttf",
+  "C:\\Windows\\Fonts\\DejaVuSans-Oblique.ttf",
+  "/usr/share/fonts/truetype/noto/NotoSans-Italic.ttf",
   "/usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf",
   "/usr/share/fonts/truetype/liberation2/LiberationSans-Italic.ttf",
   "/usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf",
-  "/usr/share/fonts/truetype/noto/NotoSans-Italic.ttf",
 ];
 
-const SANS_BOLD_ITALIC_CANDIDATES = [
-  "C:\\Windows\\Fonts\\arialbi.ttf",
+const UNICODE_SANS_BOLD_ITALIC_CANDIDATES = [
+  path.join(PROJECT_FONT_DIR, "NotoSans-BoldItalic.ttf"),
+  "C:\\Windows\\Fonts\\NotoSans-BoldItalic.ttf",
+  "C:\\Windows\\Fonts\\DejaVuSans-BoldOblique.ttf",
+  "/usr/share/fonts/truetype/noto/NotoSans-BoldItalic.ttf",
   "/usr/share/fonts/truetype/dejavu/DejaVuSans-BoldOblique.ttf",
   "/usr/share/fonts/truetype/liberation2/LiberationSans-BoldItalic.ttf",
   "/usr/share/fonts/truetype/liberation/LiberationSans-BoldItalic.ttf",
-  "/usr/share/fonts/truetype/noto/NotoSans-BoldItalic.ttf",
+];
+
+const SANS_REGULAR_CANDIDATES = [
+  ...UNICODE_SANS_REGULAR_CANDIDATES,
+  "C:\\Windows\\Fonts\\arial.ttf",
+];
+
+const SANS_BOLD_CANDIDATES = [
+  ...UNICODE_SANS_BOLD_CANDIDATES,
+  "C:\\Windows\\Fonts\\arialbd.ttf",
+];
+
+const SANS_ITALIC_CANDIDATES = [
+  ...UNICODE_SANS_ITALIC_CANDIDATES,
+  "C:\\Windows\\Fonts\\ariali.ttf",
+];
+
+const SANS_BOLD_ITALIC_CANDIDATES = [
+  ...UNICODE_SANS_BOLD_ITALIC_CANDIDATES,
+  "C:\\Windows\\Fonts\\arialbi.ttf",
 ];
 
 const SERIF_REGULAR_CANDIDATES = [
@@ -781,7 +811,21 @@ async function embedFont(pdfDoc, fontKey) {
   const normalizedKey = resolveFontKey(fontKey);
   const definition = FONT_DEFINITIONS[normalizedKey] || FONT_DEFINITIONS[DEFAULT_FONT_KEY];
 
-  for (const candidatePath of definition.candidates || []) {
+  const embeddedRequestedFont = await embedFirstReadableFont(pdfDoc, definition.candidates || []);
+  if (embeddedRequestedFont) {
+    return embeddedRequestedFont;
+  }
+
+  const unicodeFallbackFont = await embedFirstReadableFont(pdfDoc, getUnicodeFallbackCandidates(normalizedKey));
+  if (unicodeFallbackFont) {
+    return unicodeFallbackFont;
+  }
+
+  return pdfDoc.embedFont(definition.fallback || StandardFonts.Helvetica);
+}
+
+async function embedFirstReadableFont(pdfDoc, candidates) {
+  for (const candidatePath of candidates) {
     try {
       const fontBytes = await fs.readFile(candidatePath);
       return await pdfDoc.embedFont(fontBytes, { subset: true });
@@ -790,7 +834,27 @@ async function embedFont(pdfDoc, fontKey) {
     }
   }
 
-  return pdfDoc.embedFont(definition.fallback || StandardFonts.Helvetica);
+  return null;
+}
+
+function getUnicodeFallbackCandidates(fontKey) {
+  const normalized = String(fontKey || "").toLowerCase();
+  const isBold = normalized.includes("bold");
+  const isItalic = normalized.includes("italic") || normalized.includes("oblique");
+
+  if (isBold && isItalic) {
+    return UNICODE_SANS_BOLD_ITALIC_CANDIDATES;
+  }
+
+  if (isBold) {
+    return UNICODE_SANS_BOLD_CANDIDATES;
+  }
+
+  if (isItalic) {
+    return UNICODE_SANS_ITALIC_CANDIDATES;
+  }
+
+  return UNICODE_SANS_REGULAR_CANDIDATES;
 }
 
 function resolveFontKey(fontName) {
