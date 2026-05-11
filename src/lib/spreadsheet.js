@@ -1,3 +1,4 @@
+const path = require("path");
 const XLSX = require("xlsx");
 const { coerceText, normalizeKey } = require("./utils");
 
@@ -6,7 +7,7 @@ function loadSpreadsheet(spreadsheetFile, config) {
     throw new Error("A spreadsheet file is required.");
   }
 
-  const workbook = XLSX.read(spreadsheetFile.buffer, { type: "buffer" });
+  const workbook = readWorkbook(spreadsheetFile);
   const requestedSheetName = config.spreadsheet.sheetName;
   const sheetName = workbook.SheetNames.includes(requestedSheetName) ? requestedSheetName : workbook.SheetNames[0];
 
@@ -40,6 +41,46 @@ function loadSpreadsheet(spreadsheetFile, config) {
   };
 }
 
+function readWorkbook(spreadsheetFile) {
+  const extension = path.extname(spreadsheetFile.originalname || "").toLowerCase();
+
+  if (extension === ".csv") {
+    const csvText = decodeCsvBuffer(spreadsheetFile.buffer);
+    return XLSX.read(csvText, { type: "string" });
+  }
+
+  return XLSX.read(spreadsheetFile.buffer, { type: "buffer" });
+}
+
+function decodeCsvBuffer(buffer) {
+  if (!buffer || buffer.length === 0) {
+    return "";
+  }
+
+  if (hasBom(buffer, [0xff, 0xfe])) {
+    return new TextDecoder("utf-16le").decode(buffer.subarray(2));
+  }
+
+  if (hasBom(buffer, [0xfe, 0xff])) {
+    return new TextDecoder("utf-16be").decode(buffer.subarray(2));
+  }
+
+  const utf8Text = stripBom(buffer.toString("utf8"));
+  if (!utf8Text.includes("\uFFFD")) {
+    return utf8Text;
+  }
+
+  return stripBom(new TextDecoder("windows-1254").decode(buffer));
+}
+
+function hasBom(buffer, signature) {
+  return signature.every((byte, index) => buffer[index] === byte);
+}
+
+function stripBom(text) {
+  return String(text || "").replace(/^\uFEFF/, "");
+}
+
 function decorateRow(row, rowNumber) {
   const normalizedRow = {};
   const lookup = {};
@@ -64,4 +105,3 @@ function decorateRow(row, rowNumber) {
 module.exports = {
   loadSpreadsheet,
 };
-
