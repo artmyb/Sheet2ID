@@ -900,13 +900,31 @@ async function embedFirstReadableFont(pdfDoc, candidates) {
   for (const candidatePath of candidates) {
     try {
       const fontBytes = await fs.readFile(candidatePath);
-      return await pdfDoc.embedFont(fontBytes, { subset: true });
+      return await pdfDoc.embedFont(fontBytes, { subset: shouldSubsetFont(candidatePath) });
     } catch {
       continue;
     }
   }
 
   return null;
+}
+
+function shouldSubsetFont(candidatePath) {
+  const normalizedPath = String(candidatePath || "");
+  const normalizedProjectDir = PROJECT_FONT_DIR.toLowerCase();
+  const candidatePathLower = normalizedPath.toLowerCase();
+
+  if (!candidatePathLower.startsWith(normalizedProjectDir)) {
+    return true;
+  }
+
+  const basename = path.basename(candidatePathLower);
+
+  if (basename.startsWith("notosans-")) {
+    return true;
+  }
+
+  return false;
 }
 
 function getUnicodeFallbackCandidates(fontKey) {
