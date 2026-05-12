@@ -73,6 +73,7 @@ function normalizeElement(element, index) {
     color: String(element.color || "#111111"),
     align: String(element.align || "left").toLowerCase(),
     valign: String(element.valign || "top").toLowerCase(),
+    lastWordOnSecondLine: Boolean(element.lastWordOnSecondLine || element.lastNameOnSecondLine),
     uppercase: Boolean(element.uppercase),
     maxLines: Math.max(1, integerOr(element.maxLines, 99)),
     hideWhenEmpty: Boolean(element.hideWhenEmpty),
@@ -82,4 +83,3 @@ function normalizeElement(element, index) {
 module.exports = {
   normalizeConfig,
 };
-

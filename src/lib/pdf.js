@@ -18,9 +18,10 @@ const { clamp, getRowValue, hexToRgb, mmToPt, renderTemplate } = require("./util
 const DEFAULT_FONT_KEY = "helvetica";
 const DEFAULT_BOLD_FONT_KEY = "helvetica-bold";
 const PROJECT_FONT_DIR = path.resolve(__dirname, "../fonts");
+const projectFont = (filename) => path.join(PROJECT_FONT_DIR, filename);
 
 const UNICODE_SANS_REGULAR_CANDIDATES = [
-  path.join(PROJECT_FONT_DIR, "NotoSans-Regular.ttf"),
+  projectFont("NotoSans-Regular.ttf"),
   "C:\\Windows\\Fonts\\NotoSans-Regular.ttf",
   "C:\\Windows\\Fonts\\DejaVuSans.ttf",
   "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
@@ -30,7 +31,7 @@ const UNICODE_SANS_REGULAR_CANDIDATES = [
 ];
 
 const UNICODE_SANS_BOLD_CANDIDATES = [
-  path.join(PROJECT_FONT_DIR, "NotoSans-Bold.ttf"),
+  projectFont("NotoSans-Bold.ttf"),
   "C:\\Windows\\Fonts\\NotoSans-Bold.ttf",
   "C:\\Windows\\Fonts\\DejaVuSans-Bold.ttf",
   "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",
@@ -40,7 +41,7 @@ const UNICODE_SANS_BOLD_CANDIDATES = [
 ];
 
 const UNICODE_SANS_ITALIC_CANDIDATES = [
-  path.join(PROJECT_FONT_DIR, "NotoSans-Italic.ttf"),
+  projectFont("NotoSans-Italic.ttf"),
   "C:\\Windows\\Fonts\\NotoSans-Italic.ttf",
   "C:\\Windows\\Fonts\\DejaVuSans-Oblique.ttf",
   "/usr/share/fonts/truetype/noto/NotoSans-Italic.ttf",
@@ -50,7 +51,7 @@ const UNICODE_SANS_ITALIC_CANDIDATES = [
 ];
 
 const UNICODE_SANS_BOLD_ITALIC_CANDIDATES = [
-  path.join(PROJECT_FONT_DIR, "NotoSans-BoldItalic.ttf"),
+  projectFont("NotoSans-BoldItalic.ttf"),
   "C:\\Windows\\Fonts\\NotoSans-BoldItalic.ttf",
   "C:\\Windows\\Fonts\\DejaVuSans-BoldOblique.ttf",
   "/usr/share/fonts/truetype/noto/NotoSans-BoldItalic.ttf",
@@ -58,6 +59,24 @@ const UNICODE_SANS_BOLD_ITALIC_CANDIDATES = [
   "/usr/share/fonts/truetype/liberation2/LiberationSans-BoldItalic.ttf",
   "/usr/share/fonts/truetype/liberation/LiberationSans-BoldItalic.ttf",
 ];
+
+const GOOGLE_SANS_REGULAR_CANDIDATES = [projectFont("GoogleSans-Regular.ttf"), ...UNICODE_SANS_REGULAR_CANDIDATES];
+const GOOGLE_SANS_BOLD_CANDIDATES = [projectFont("GoogleSans-Bold.ttf"), ...UNICODE_SANS_BOLD_CANDIDATES];
+const GOOGLE_SANS_ITALIC_CANDIDATES = [projectFont("GoogleSans-Italic.ttf"), ...UNICODE_SANS_ITALIC_CANDIDATES];
+const GOOGLE_SANS_BOLD_ITALIC_CANDIDATES = [projectFont("GoogleSans-BoldItalic.ttf"), ...UNICODE_SANS_BOLD_ITALIC_CANDIDATES];
+const GOOGLE_SANS_MEDIUM_CANDIDATES = [projectFont("GoogleSans-Medium.ttf"), ...UNICODE_SANS_REGULAR_CANDIDATES];
+const GOOGLE_SANS_MEDIUM_ITALIC_CANDIDATES = [projectFont("GoogleSans-MediumItalic.ttf"), ...UNICODE_SANS_ITALIC_CANDIDATES];
+const GOOGLE_SANS_SEMIBOLD_CANDIDATES = [projectFont("GoogleSans-SemiBold.ttf"), ...UNICODE_SANS_BOLD_CANDIDATES];
+const GOOGLE_SANS_SEMIBOLD_ITALIC_CANDIDATES = [projectFont("GoogleSans-SemiBoldItalic.ttf"), ...UNICODE_SANS_BOLD_ITALIC_CANDIDATES];
+const GOOGLE_SANS_17PT_REGULAR_CANDIDATES = [projectFont("GoogleSans_17pt-Regular.ttf"), ...UNICODE_SANS_REGULAR_CANDIDATES];
+const GOOGLE_SANS_17PT_BOLD_CANDIDATES = [projectFont("GoogleSans_17pt-Bold.ttf"), ...UNICODE_SANS_BOLD_CANDIDATES];
+const GOOGLE_SANS_17PT_ITALIC_CANDIDATES = [projectFont("GoogleSans_17pt-Italic.ttf"), ...UNICODE_SANS_ITALIC_CANDIDATES];
+const GOOGLE_SANS_17PT_BOLD_ITALIC_CANDIDATES = [projectFont("GoogleSans_17pt-BoldItalic.ttf"), ...UNICODE_SANS_BOLD_ITALIC_CANDIDATES];
+const GOOGLE_SANS_17PT_MEDIUM_CANDIDATES = [projectFont("GoogleSans_17pt-Medium.ttf"), ...UNICODE_SANS_REGULAR_CANDIDATES];
+const GOOGLE_SANS_17PT_MEDIUM_ITALIC_CANDIDATES = [projectFont("GoogleSans_17pt-MediumItalic.ttf"), ...UNICODE_SANS_ITALIC_CANDIDATES];
+const GOOGLE_SANS_17PT_SEMIBOLD_CANDIDATES = [projectFont("GoogleSans_17pt-SemiBold.ttf"), ...UNICODE_SANS_BOLD_CANDIDATES];
+const GOOGLE_SANS_17PT_SEMIBOLD_ITALIC_CANDIDATES = [projectFont("GoogleSans_17pt-SemiBoldItalic.ttf"), ...UNICODE_SANS_BOLD_ITALIC_CANDIDATES];
+const SATOSHI_CANDIDATES = [projectFont("Satoshi-Variable.ttf"), ...UNICODE_SANS_REGULAR_CANDIDATES];
 
 const SANS_REGULAR_CANDIDATES = [
   ...UNICODE_SANS_REGULAR_CANDIDATES,
@@ -295,6 +314,23 @@ const FONT_DEFINITIONS = {
   "consolas italic": { candidates: CONSOLAS_ITALIC_CANDIDATES, fallback: StandardFonts.CourierOblique },
   "consolas bold italic": { candidates: CONSOLAS_BOLD_ITALIC_CANDIDATES, fallback: StandardFonts.CourierBoldOblique },
   "lucida console": { candidates: LUCIDA_CONSOLE_CANDIDATES, fallback: StandardFonts.Courier },
+  "google sans": { candidates: GOOGLE_SANS_REGULAR_CANDIDATES, fallback: StandardFonts.Helvetica },
+  "google sans bold": { candidates: GOOGLE_SANS_BOLD_CANDIDATES, fallback: StandardFonts.HelveticaBold },
+  "google sans italic": { candidates: GOOGLE_SANS_ITALIC_CANDIDATES, fallback: StandardFonts.HelveticaOblique },
+  "google sans bold italic": { candidates: GOOGLE_SANS_BOLD_ITALIC_CANDIDATES, fallback: StandardFonts.HelveticaBoldOblique },
+  "google sans medium": { candidates: GOOGLE_SANS_MEDIUM_CANDIDATES, fallback: StandardFonts.Helvetica },
+  "google sans medium italic": { candidates: GOOGLE_SANS_MEDIUM_ITALIC_CANDIDATES, fallback: StandardFonts.HelveticaOblique },
+  "google sans semibold": { candidates: GOOGLE_SANS_SEMIBOLD_CANDIDATES, fallback: StandardFonts.HelveticaBold },
+  "google sans semibold italic": { candidates: GOOGLE_SANS_SEMIBOLD_ITALIC_CANDIDATES, fallback: StandardFonts.HelveticaBoldOblique },
+  "google sans 17pt": { candidates: GOOGLE_SANS_17PT_REGULAR_CANDIDATES, fallback: StandardFonts.Helvetica },
+  "google sans 17pt bold": { candidates: GOOGLE_SANS_17PT_BOLD_CANDIDATES, fallback: StandardFonts.HelveticaBold },
+  "google sans 17pt italic": { candidates: GOOGLE_SANS_17PT_ITALIC_CANDIDATES, fallback: StandardFonts.HelveticaOblique },
+  "google sans 17pt bold italic": { candidates: GOOGLE_SANS_17PT_BOLD_ITALIC_CANDIDATES, fallback: StandardFonts.HelveticaBoldOblique },
+  "google sans 17pt medium": { candidates: GOOGLE_SANS_17PT_MEDIUM_CANDIDATES, fallback: StandardFonts.Helvetica },
+  "google sans 17pt medium italic": { candidates: GOOGLE_SANS_17PT_MEDIUM_ITALIC_CANDIDATES, fallback: StandardFonts.HelveticaOblique },
+  "google sans 17pt semibold": { candidates: GOOGLE_SANS_17PT_SEMIBOLD_CANDIDATES, fallback: StandardFonts.HelveticaBold },
+  "google sans 17pt semibold italic": { candidates: GOOGLE_SANS_17PT_SEMIBOLD_ITALIC_CANDIDATES, fallback: StandardFonts.HelveticaBoldOblique },
+  "satoshi": { candidates: SATOSHI_CANDIDATES, fallback: StandardFonts.Helvetica },
 };
 
 const FONT_ALIASES = {
@@ -351,6 +387,17 @@ const FONT_ALIASES = {
   "noto sans mono italic": "courier-oblique",
   "noto sans mono bold italic": "courier-boldoblique",
   "monospace": "courier",
+  "google sans semi bold": "google sans semibold",
+  "google sans semi bold italic": "google sans semibold italic",
+  "google sans 17 pt": "google sans 17pt",
+  "google sans 17 pt bold": "google sans 17pt bold",
+  "google sans 17 pt italic": "google sans 17pt italic",
+  "google sans 17 pt bold italic": "google sans 17pt bold italic",
+  "google sans 17 pt medium": "google sans 17pt medium",
+  "google sans 17 pt medium italic": "google sans 17pt medium italic",
+  "google sans 17 pt semibold": "google sans 17pt semibold",
+  "google sans 17 pt semibold italic": "google sans 17pt semibold italic",
+  "satoshi variable": "satoshi",
 };
 
 async function generatePdf(cards, config) {
@@ -468,13 +515,9 @@ async function drawPhotoElement(page, pdfDoc, card, cardRect, element, config, f
 }
 
 function drawTextElement(page, card, cardRect, element, fontCache) {
-  let text = getElementText(card.row, element);
+  let text = formatElementText(getElementText(card.row, element), element);
   if (!text && element.hideWhenEmpty) {
     return;
-  }
-
-  if (element.uppercase) {
-    text = text.toUpperCase();
   }
 
   const fontKey = resolveFontKey(element.font);
@@ -490,7 +533,7 @@ function drawTextElement(page, card, cardRect, element, fontCache) {
     fontSize: element.fontSize,
     minFontSize: element.minFontSize,
     lineHeight: element.lineHeight,
-    maxLines: element.maxLines,
+    maxLines: Math.max(element.maxLines, element.lastWordOnSecondLine ? 2 : 1),
   });
 
   if (!fitted.lines.length) {
@@ -719,6 +762,35 @@ function getElementText(row, element) {
   }
 
   return `${element.prefix || ""}${element.value || ""}${element.suffix || ""}`.trim();
+}
+
+function formatElementText(text, element) {
+  let formattedText = String(text || "");
+
+  if (element.lastWordOnSecondLine) {
+    formattedText = moveLastWordToSecondLine(formattedText);
+  }
+
+  if (element.uppercase) {
+    formattedText = formattedText.toUpperCase();
+  }
+
+  return formattedText;
+}
+
+function moveLastWordToSecondLine(text) {
+  const normalizedText = String(text || "").trim();
+
+  if (!normalizedText || /\r?\n/.test(normalizedText)) {
+    return normalizedText;
+  }
+
+  const words = normalizedText.split(/\s+/).filter(Boolean);
+  if (words.length < 2) {
+    return normalizedText;
+  }
+
+  return `${words.slice(0, -1).join(" ")}\n${words[words.length - 1]}`;
 }
 
 function resolveElementBox(cardRect, element) {

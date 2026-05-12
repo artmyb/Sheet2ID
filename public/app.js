@@ -7,6 +7,26 @@ const PAGE_SIZE_PRESETS_MM = {
   legal: { width: 215.9, height: 355.6 },
 };
 
+const CUSTOM_FONT_CHOICES = [
+  "Google Sans",
+  "Google Sans Bold",
+  "Google Sans Italic",
+  "Google Sans Bold Italic",
+  "Google Sans Medium",
+  "Google Sans Medium Italic",
+  "Google Sans SemiBold",
+  "Google Sans SemiBold Italic",
+  "Google Sans 17pt",
+  "Google Sans 17pt Bold",
+  "Google Sans 17pt Italic",
+  "Google Sans 17pt Bold Italic",
+  "Google Sans 17pt Medium",
+  "Google Sans 17pt Medium Italic",
+  "Google Sans 17pt SemiBold",
+  "Google Sans 17pt SemiBold Italic",
+  "Satoshi",
+];
+
 const FONT_CHOICES = [
   "Helvetica",
   "Helvetica-Bold",
@@ -142,6 +162,7 @@ const FONT_CHOICES = [
   "Noto Sans Mono Bold",
   "Noto Sans Mono Italic",
   "Noto Sans Mono Bold Italic",
+  ...CUSTOM_FONT_CHOICES,
 ];
 
 const DEFAULT_UI_OPEN = {
@@ -1257,6 +1278,7 @@ function renderElementCard(elementConfig, index) {
                 ${renderNumberElementField(index, "maxLines", "Max Lines", elementConfig.maxLines, { min: 1, step: 1, type: "integer" })}
                 ${renderElementSelect(index, "align", "Horizontal Align", elementConfig.align, ["left", "center", "right"])}
                 ${renderElementSelect(index, "valign", "Vertical Align", elementConfig.valign, ["top", "center", "bottom"])}
+                ${renderCheckboxElementField(index, "lastWordOnSecondLine", "Last Word on Second Row", elementConfig.lastWordOnSecondLine)}
                 ${renderCheckboxElementField(index, "uppercase", "Uppercase", elementConfig.uppercase)}
                 ${renderCheckboxElementField(index, "hideWhenEmpty", "Hide When Empty", elementConfig.hideWhenEmpty)}
               </div>
@@ -1666,6 +1688,7 @@ function normalizeElement(element = {}, index = 0) {
     color: safeColor(element.color || "#111111", "#111111"),
     align: String(element.align || "left"),
     valign: String(element.valign || "top"),
+    lastWordOnSecondLine: Boolean(element.lastWordOnSecondLine || element.lastNameOnSecondLine),
     uppercase: Boolean(element.uppercase),
     maxLines: integerOr(element.maxLines, 99),
     hideWhenEmpty: Boolean(element.hideWhenEmpty),
